@@ -350,10 +350,8 @@ export default class Home extends Component {
             onPress={async (viewRef) => {
               try {
                 const uri = await captureRef(viewRef, {result: 'base64'});
-                await BluetoothEscposPrinter.setWidth(560);
-                await BluetoothEscposPrinter.printPic(uri, {
-                  left: 1,
-                });
+                await BluetoothEscposPrinter.setWidth(565);
+                await BluetoothEscposPrinter.printPic(uri, {});
               } catch (e) {
                 alert(e.message || 'ERROR');
               }
