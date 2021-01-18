@@ -23,7 +23,8 @@ import {
   BluetoothEscposPrinter,
   BluetoothManager,
 } from 'react-native-bluetooth-escpos-printer';
-import ViewShot from 'react-native-view-shot';
+import {captureRef} from 'react-native-view-shot';
+import {ImageContainer} from './ImageContainer';
 
 var {height, width} = Dimensions.get('window');
 export default class Home extends Component {
@@ -225,97 +226,132 @@ export default class Home extends Component {
     return items;
   }
 
+  /*render () {
+    return (
+      <ImageContainer
+        imageSource={require('./res/16068953945686013262124568159524.jpg')}
+        onPress={async (viewRef) => {
+          try {
+            const uri = await captureRef(viewRef, {result: 'base64'});
+            await BluetoothEscposPrinter.printPic(uri, {
+              left: 1,
+            });
+          } catch (e) {
+            alert(e.message || 'ERROR');
+          }
+        }}
+      />
+    )
+  }*/
+
+
   render() {
     return (
-      <ScrollView style={styles.container}>
-        <Text>{this.state.debugMsg}</Text>
-        <Text style={styles.title}>
-          Blutooth Opended:{this.state.bleOpend ? 'true' : 'false'}{' '}
-          <Text>Open BLE Before Scanning</Text>{' '}
-        </Text>
-        <View>
-          <Switch
-            value={this.state.bleOpend}
-            onValueChange={(v) => {
-              this.setState({
-                loading: true,
-              });
-              if (!v) {
-                BluetoothManager.disableBluetooth().then(
-                  () => {
-                    this.setState({
-                      bleOpend: false,
-                      loading: false,
-                      foundDs: [],
-                      pairedDs: [],
-                    });
-                  },
-                  (err) => {
-                    alert(err);
-                  },
-                );
-              } else {
-                BluetoothManager.enableBluetooth().then(
-                  (r) => {
-                    var paired = [];
-                    if (r && r.length > 0) {
-                      for (var i = 0; i < r.length; i++) {
-                        try {
-                          paired.push(JSON.parse(r[i]));
-                        } catch (e) {
-                          //ignore
+      <>
+        <ScrollView style={styles.container}>
+          <Text>{this.state.debugMsg}</Text>
+          <Text style={styles.title}>
+            Blutooth Opended:{this.state.bleOpend ? 'true' : 'false'}{' '}
+            <Text>Open BLE Before Scanning</Text>{' '}
+          </Text>
+          <View>
+            <Switch
+              value={this.state.bleOpend}
+              onValueChange={(v) => {
+                this.setState({
+                  loading: true,
+                });
+                if (!v) {
+                  BluetoothManager.disableBluetooth().then(
+                    () => {
+                      this.setState({
+                        bleOpend: false,
+                        loading: false,
+                        foundDs: [],
+                        pairedDs: [],
+                      });
+                    },
+                    (err) => {
+                      alert(err);
+                    },
+                  );
+                } else {
+                  BluetoothManager.enableBluetooth().then(
+                    (r) => {
+                      var paired = [];
+                      if (r && r.length > 0) {
+                        for (var i = 0; i < r.length; i++) {
+                          try {
+                            paired.push(JSON.parse(r[i]));
+                          } catch (e) {
+                            //ignore
+                          }
                         }
                       }
-                    }
-                    this.setState({
-                      bleOpend: true,
-                      loading: false,
-                      pairedDs: paired,
-                    });
-                  },
-                  (err) => {
-                    this.setState({
-                      loading: false,
-                    });
-                    alert(err);
-                  },
-                );
-              }
-            }}
-          />
-          <Button
-            disabled={this.state.loading || !this.state.bleOpend}
-            onPress={() => {
-              this._scan();
-            }}
-            title="Scan"
-          />
-        </View>
-        <Text style={styles.title}>
-          Connected:
-          <Text style={{color: 'blue'}}>
-            {!this.state.name ? 'No Devices' : this.state.name}
+                      this.setState({
+                        bleOpend: true,
+                        loading: false,
+                        pairedDs: paired,
+                      });
+                    },
+                    (err) => {
+                      this.setState({
+                        loading: false,
+                      });
+                      alert(err);
+                    },
+                  );
+                }
+              }}
+            />
+            <Button
+              disabled={this.state.loading || !this.state.bleOpend}
+              onPress={() => {
+                this._scan();
+              }}
+              title="Scan"
+            />
+          </View>
+          <Text style={styles.title}>
+            Connected:
+            <Text style={{color: 'blue'}}>
+              {!this.state.name ? 'No Devices' : this.state.name}
+            </Text>
           </Text>
-        </Text>
-        <Text style={styles.title}>Found(tap to connect):</Text>
-        {this.state.loading ? <ActivityIndicator animating={true} /> : null}
-        <View style={{flex: 1, flexDirection: 'column'}}>
-          {this._renderRow(this.state.foundDs)}
-        </View>
-        <Text style={styles.title}>Paired:</Text>
-        {this.state.loading ? <ActivityIndicator animating={true} /> : null}
-        <View style={{flex: 1, flexDirection: 'column'}}>
-          {this._renderRow(this.state.pairedDs)}
-        </View>
+          <Text style={styles.title}>Found(tap to connect):</Text>
+          {this.state.loading ? <ActivityIndicator animating={true} /> : null}
+          <View style={{flex: 1, flexDirection: 'column'}}>
+            {this._renderRow(this.state.foundDs)}
+          </View>
+          <Text style={styles.title}>Paired:</Text>
+          {this.state.loading ? <ActivityIndicator animating={true} /> : null}
+          <View style={{flex: 1, flexDirection: 'column'}}>
+            {this._renderRow(this.state.pairedDs)}
+          </View>
 
-        <View style={styles.btn}>
-          <Button
-            disabled={!this.state.uri}
-            title="Print Image"
-            onPress={async () => {
+          <View style={styles.btn}>
+            <Button
+              disabled={!this.state.uri}
+              title="Print Image"
+              onPress={async () => {
+                try {
+                  await BluetoothEscposPrinter.printPic(this.state.uri, {
+                    width: 700,
+                    left: 1,
+                  });
+                } catch (e) {
+                  alert(e.message || 'ERROR');
+                }
+              }}
+            />
+          </View>
+          <ImageContainer
+            imageSource={require('./res/16068953945686013262124568159524.jpg')}
+            onPress={async (viewRef) => {
               try {
-                await BluetoothEscposPrinter.printPic(this.state.uri, {
-                  width: 700,
+                const uri = await captureRef(viewRef, {result: 'base64'});
+                await BluetoothEscposPrinter.setWidth(560);
+                await BluetoothEscposPrinter.printPic(uri, {
                   left: 1,
                 });
               } catch (e) {
@@ -323,23 +359,8 @@ export default class Home extends Component {
               }
             }}
           />
-        </View>
-        <ViewShot
-          onCapture={this.onCapture}
-          captureMode={'mount'}
-          options={{
-            result: 'base64',
-          }}>
-          <Image
-            style={{
-              width: '100%',
-              overflow: 'visible',
-              resizeMode: 'center',
-            }}
-            source={require('./res/16068953945686013262124568159524.jpg')}
-          />
-        </ViewShot>
-      </ScrollView>
+        </ScrollView>
+      </>
     );
   }
 
